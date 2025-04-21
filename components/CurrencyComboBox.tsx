@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/popover"
 import { Currencies, Currency } from "@/lib/currencies"
 import { useQuery } from "@tanstack/react-query"
+import SkeletonWrapper from "./SkeletonWrapper"
 
 
 
@@ -44,6 +45,7 @@ export function CurrencyComboBox() {
 
   if (isDesktop) {
     return (
+      <SkeletonWrapper isLoading = {userSettings.isFetching}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button variant="outline" className="w-full justify-start">
@@ -54,6 +56,7 @@ export function CurrencyComboBox() {
           <OptionList setOpen={setOpen} setSelectedOption={setSelectedOption} />
         </PopoverContent>
       </Popover>
+      </SkeletonWrapper>
     )
   }
 
