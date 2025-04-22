@@ -23,8 +23,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Currencies, Currency } from "@/lib/currencies"
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import SkeletonWrapper from "./SkeletonWrapper"
+import { UserSettings } from "@/lib/generated/prisma"
+import { UpdateUserCurrency } from "@/app/wizard/_actions/UserSettings"
+import { toast } from "sonner"
 
 
 
@@ -37,11 +40,36 @@ export function CurrencyComboBox() {
     null
   )
 
-  const userSettings = useQuery({
+  const userSettings = useQuery<UserSettings>({
     queryKey: ["userSettings"],
     queryFn :()=> fetch("/api/user-settings").then((res) => res.json()),
   });
   console.log("@@@ USER SETTINGS", userSettings);
+
+  React.useEffect(()=>{
+    if(!userSettings.data)return;
+    const  userCurrency = Currencies.find(
+      (currency) => currency.value === userSettings.data.currency
+    );
+    if(userCurrency) setSelectedOption(userCurrency);
+  },  [userSettings.data]);
+
+  const mutation = useMutation({
+    mutationFn: UpdateUserCurrency,
+  });
+
+  const selectOption = (currency:Currency | null) => {
+    if(!currency) {
+      toast.error("Please select a currency");
+      return;
+    }
+
+    toast.loading("Updating Currrency...",{
+      id:"update-currency",
+    });
+
+    mutation.mutate(currency.value);
+  };
 
   if (isDesktop) {
     return (
@@ -61,6 +89,7 @@ export function CurrencyComboBox() {
   }
 
   return (
+    <SkeletonWrapper isLoading = {userSettings.isFetching}>
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
         <Button variant="outline" className="w-full justify-start">
@@ -73,6 +102,8 @@ export function CurrencyComboBox() {
         </div>
       </DrawerContent>
     </Drawer>
+    </SkeletonWrapper>
+
   )
 }
 
