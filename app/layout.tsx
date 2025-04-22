@@ -10,6 +10,7 @@ import {
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import RootProviders from '@/components/providers/RootProviders'
+import { Toaster } from '@/components/ui/sonner'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -37,7 +38,10 @@ export default function RootLayout({
         colorScheme : "dark",
       }}>
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-          <RootProviders>{children}</RootProviders>
+          <Toaster richColors position="bottom-right"/>
+          <RootProviders>
+            {children}
+          </RootProviders>
           <header className="flex justify-end items-center p-4 gap-4 h-16">
             <SignedOut>
               <SignInButton />
