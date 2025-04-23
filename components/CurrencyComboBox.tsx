@@ -58,7 +58,7 @@ export function CurrencyComboBox() {
     mutationFn: UpdateUserCurrency,
   });
 
-  const selectOption = (currency:Currency | null) => {
+  const selectOption = React.useCallback(currency:Currency | null) => {
     if(!currency) {
       toast.error("Please select a currency");
       return;
@@ -66,7 +66,9 @@ export function CurrencyComboBox() {
 
     toast.loading("Updating Currrency...",{
       id:"update-currency",
-    });
+    },
+    [mutation]
+  );
 
     mutation.mutate(currency.value);
   };
@@ -76,7 +78,9 @@ export function CurrencyComboBox() {
       <SkeletonWrapper isLoading = {userSettings.isFetching}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="w-full justify-start">
+          <Button variant="outline" className="w-full justify-start"
+          disabled={mutation.isPending}>
+            
             {selectedOption ? <>{selectedOption.label}</> : <>Set Currency</>}
           </Button>
         </PopoverTrigger>
@@ -92,7 +96,8 @@ export function CurrencyComboBox() {
     <SkeletonWrapper isLoading = {userSettings.isFetching}>
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button variant="outline" className="w-full justify-start">
+        <Button variant="outline" className="w-full justify-start"
+        disabled={mutation.isPending}>
           {selectedOption ? <>{selectedOption.label}</> : <>Set Currency </>}
         </Button>
       </DrawerTrigger>
