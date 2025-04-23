@@ -56,9 +56,24 @@ export function CurrencyComboBox() {
 
   const mutation = useMutation({
     mutationFn: UpdateUserCurrency,
+    onSuccess:(data: UserSettings) => {
+      toast.success(`Currency Updated Succesfully 🎉`,{
+        id:"update-currency"
+      });
+
+      setSelectedOption(
+        Currencies.find((c)=>c.value === data.currency)|| null
+      );
+    },
+    onError : (e) => {
+      toast.error("Something went wrong",{ 
+        id:"update-currency"
+      })
+    }
+    
   });
 
-  const selectOption = React.useCallback(currency:Currency | null) => {
+  const selectOption = React.useCallback((currency:Currency | null) => {
     if(!currency) {
       toast.error("Please select a currency");
       return;
@@ -66,26 +81,26 @@ export function CurrencyComboBox() {
 
     toast.loading("Updating Currrency...",{
       id:"update-currency",
-    },
-    [mutation]
-  );
+    });
 
     mutation.mutate(currency.value);
-  };
+  },
+  [mutation]
+);
 
   if (isDesktop) {
     return (
       <SkeletonWrapper isLoading = {userSettings.isFetching}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="w-full justify-start"
+          <Button variant="outline" 
+          className="w-full justify-start"
           disabled={mutation.isPending}>
-            
             {selectedOption ? <>{selectedOption.label}</> : <>Set Currency</>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-0" align="start">
-          <OptionList setOpen={setOpen} setSelectedOption={setSelectedOption} />
+          <OptionList setOpen={setOpen} setSelectedOption={selectOption} />
         </PopoverContent>
       </Popover>
       </SkeletonWrapper>
@@ -103,7 +118,7 @@ export function CurrencyComboBox() {
       </DrawerTrigger>
       <DrawerContent>
         <div className="mt-4 border-t">
-          <OptionList setOpen={setOpen} setSelectedOption={setSelectedOption} />
+          <OptionList setOpen={setOpen} setSelectedOption={selectOption} />
         </div>
       </DrawerContent>
     </Drawer>
