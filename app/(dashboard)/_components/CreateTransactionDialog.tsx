@@ -84,7 +84,7 @@ function CreateTransactionDialog({trigger, type }: Props) {
           />
 
           <div className="flex items-center justify-between gap-2">
-          <FormField 
+        <FormField 
           control={form.control}
           name = "category"
           render={({ field }) => (

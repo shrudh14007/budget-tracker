@@ -8,6 +8,7 @@ import { TransactionType } from '@/lib/types';
 import { useQuery } from '@tanstack/react-query';
 import React from 'react';
 import CreateTransactionDialog from './CreateTransactionDialog';
+import CreateCategoryDialog from './CreateCategoryDialog';
 
 interface Props{
     type: TransactionType
