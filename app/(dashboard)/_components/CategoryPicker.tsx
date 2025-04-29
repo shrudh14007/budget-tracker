@@ -7,6 +7,7 @@ import { Category } from '@/lib/generated/prisma';
 import { TransactionType } from '@/lib/types';
 import { useQuery } from '@tanstack/react-query';
 import React from 'react';
+import CreateTransactionDialog from './CreateTransactionDialog';
 
 interface Props{
     type: TransactionType
@@ -32,7 +33,8 @@ function CategoryPicker({type} : Props) {
             e.preventDefault();
         }}
         >
-            <CommandInput />
+            <CommandInput placeholder='Search Category...'/>
+            <CreateCategoryDialog type = {type}/>
         </Command>
     </PopoverContent>
   </Popover>; 
