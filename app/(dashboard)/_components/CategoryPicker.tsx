@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from '@/components/ui/button';
-import { Command, CommandInput } from '@/components/ui/command';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Category } from '@/lib/generated/prisma';
 import { TransactionType } from '@/lib/types';
@@ -36,6 +36,20 @@ function CategoryPicker({type} : Props) {
         >
             <CommandInput placeholder='Search Category...'/>
             <CreateCategoryDialog type = {type}/>
+            <CommandEmpty>
+                <p>Category not found </p>
+                <p className='text-xs text-muted-foreground'>
+                    Tip: Create a new Category
+                </p>
+            </CommandEmpty>
+            <CommandGroup>
+                <CommandList>
+                    {
+                    categoriesQuery.data && categoriesQuery.data.map
+                    ((category : Category) => <CommandItem key={category.name} onSelect={currentValue}></CommandItem>)
+                    }
+                </CommandList>
+            </CommandGroup>
         </Command>
     </PopoverContent>
   </Popover>; 

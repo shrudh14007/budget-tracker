@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverTrigger } from '@/components/ui/popover';
@@ -10,11 +10,15 @@ import { cn } from '@/lib/utils';
 import { CreateCategorySchema, CreateCategorySchemaType } from '@/schema/categories';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PopoverContent } from '@radix-ui/react-popover';
-import { CircleOff, PlusSquare } from 'lucide-react';
-import React, { useState } from 'react'
+import { CircleOff, Loader2, PlusSquare } from 'lucide-react';
+import React, { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form';
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { CreateCategory } from '../_actions/categories';
+import { Category } from '@/lib/generated/prisma';
+import { toast } from 'sonner';
 interface Props{
     type : TransactionType;
 }
@@ -25,7 +29,43 @@ function CreateCategoryDialog({type} : Props) {
         defaultValues : {
             type,
         },
+    });
+
+    const queryClient = useQueryClient();
+
+    const {mutate, isPending} = useMutation({
+        mutationFn : CreateCategory,
+        onSuccess : async (data: Category) => {
+            form.reset({
+                name : "",
+                icon: "",
+                type,
+            }); 
+            toast.success(`Category ${data.name} created successfully 🎉`,{
+                id: "create-category",
+            });
+            await queryClient.invalidateQueries({
+                queryKey: ["categories"],
+            });
+            
+            setOpen((prev) => !prev);
+        },
+        onError : () => {
+            toast.error("Something went wrong",{
+                id: "create-category",
+            }
+
+            );
+        }
     })
+
+    const onSubmit = useCallback((values: CreateCategorySchemaType) => {
+        toast.loading("Creating Category...", {
+            id: "create-category",
+
+        })
+        mutate(values)
+    },[mutate]);
   return (
     <Dialog open = {open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
@@ -55,7 +95,8 @@ function CreateCategoryDialog({type} : Props) {
                 </DialogDescription>
             </DialogHeader>
             <Form {...form}>
-                <form className='space-y-8'>
+                <form onSubmit = {form.handleSubmit(onSubmit)} 
+                className='space-y-8'>
         <FormField 
           control={form.control}
           name = "name"
@@ -63,7 +104,7 @@ function CreateCategoryDialog({type} : Props) {
             <FormItem> 
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input  defaultValue = {0} type = "number"
+                <Input  defaultValue = {0} type = "text"
                  {...field}/>
               </FormControl>
               <FormDescription>
@@ -106,7 +147,12 @@ function CreateCategoryDialog({type} : Props) {
 
                     </PopoverTrigger>
                     <PopoverContent className='w-full'>
-                        <Picker data = {data} /> 
+                        <Picker 
+                        data = {data}
+                        onEmojiSelect = {(emoji : {native : string } ) =>{
+                            field.onChange(emoji.native);
+                        }}
+                        /> 
                     </PopoverContent>
                 </Popover>
                  
@@ -121,7 +167,26 @@ function CreateCategoryDialog({type} : Props) {
 
             </form>
             </Form>
-        </DialogContent>
+        
+        <DialogFooter>
+            <DialogClose asChild>
+                <Button type = "button" variant={"secondary"} onClick={() => {
+                    form.reset();
+                    
+
+                  
+                }}
+                >
+                    Cancel 
+                </Button>
+            </DialogClose>
+            <Button onClick={form.handleSubmit(onSubmit)} disabled = {isPending}> 
+                {!isPending && "Create"} 
+                {isPending && <Loader2 className='animate-spin' />}
+
+            </Button>
+        </DialogFooter>
+     </DialogContent> 
 
     </Dialog>
     )
