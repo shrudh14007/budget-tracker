@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { TransactionType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { CreatetransactionSchema, CreatetransactionSchematype } from "@/schema/transaction";
-import { ReactNode } from "react";
+import { ReactNode, useCallback } from "react";
 
 interface Props{
     trigger : ReactNode;
@@ -26,6 +26,12 @@ function CreateTransactionDialog({trigger, type }: Props) {
       date: new Date(),
     },
   })
+
+const handleCategoryChange = useCallback((value : string) => {
+  form.setValue("category",value);
+
+},[form]);
+
   return <Dialog>
     <DialogTrigger asChild>
       {trigger}
@@ -83,6 +89,8 @@ function CreateTransactionDialog({trigger, type }: Props) {
           )}
           />
 
+          
+
           <div className="flex items-center justify-between gap-2">
         <FormField 
           control={form.control}
@@ -91,7 +99,7 @@ function CreateTransactionDialog({trigger, type }: Props) {
             <FormItem> 
               <FormLabel>Category</FormLabel>
               <FormControl>
-                <CategoryPicker type = {type} />
+                <CategoryPicker type = {type} onChange = {handleCategoryChange} />
               </FormControl>
               <FormDescription>
                 Select a category for this transaction 
