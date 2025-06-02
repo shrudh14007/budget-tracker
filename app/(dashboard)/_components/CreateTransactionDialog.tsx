@@ -4,7 +4,7 @@ import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogT
 import { TransactionType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { CreatetransactionSchema, CreatetransactionSchematype } from "@/schema/transaction";
-import { ReactNode, useCallback } from "react";
+import { ReactNode, useCallback, useState } from "react";
 
 interface Props{
     trigger : ReactNode;
@@ -23,9 +23,10 @@ import { format } from "path";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { formatDate, formatDistance, subDays } from "date-fns"; 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CreateTransaction } from "../_actions/transactions";
 import { toast } from "sonner";
+import { DatetoUTCDate } from "@/lib/helpers";
 
 
 function CreateTransactionDialog({trigger, type }: Props) {
@@ -37,10 +38,13 @@ function CreateTransactionDialog({trigger, type }: Props) {
     },
   })
 
+const [open, setOpen] = useState(false);
 const handleCategoryChange = useCallback((value : string) => {
   form.setValue("category",value);
 
 },[form]);
+  
+  const queryClient = useQueryClient();
 
   const{mutate,isPending} = useMutation({
     mutationFn : CreateTransaction,
@@ -51,7 +55,8 @@ const handleCategoryChange = useCallback((value : string) => {
         
 
       });
-
+      
+      
       form.reset({
           type,
           description: "",
@@ -59,10 +64,26 @@ const handleCategoryChange = useCallback((value : string) => {
           date: new Date(),
           category: undefined,
         });
+
+        //after creating a transaction , we need to invalidate the overview query which will refetch data in the homepage
+
+        queryClient.invalidateQueries({
+          queryKey:["overview"],
+        })
+
+      setOpen((prev) => !prev);
     },
   });
+  const onSubmit = useCallback( (values: CreatetransactionSchematype) => {
+    toast.loading("Creating transaction...",{id: "Create-Transaction"});
 
-  return <Dialog>
+    mutate({
+      ...values,
+      date: DatetoUTCDate(values.date)
+    })
+  },[mutate] );
+
+  return <Dialog open={open} onOpenChange={setOpen} >
     <DialogTrigger asChild>
       {trigger}
     </DialogTrigger>
@@ -83,7 +104,7 @@ const handleCategoryChange = useCallback((value : string) => {
         </DialogTitle>
       </DialogHeader>
       <Form {...form}>
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
           <FormField 
           control={form.control}
           name = "description"
@@ -126,7 +147,7 @@ const handleCategoryChange = useCallback((value : string) => {
           control={form.control}
           name = "category"
           render={({ field }) => (
-            <FormItem> 
+            <FormItem className="flex flex-col"> 
               <FormLabel>Category</FormLabel>
               <FormControl>
                 <CategoryPicker type = {type} onChange = {handleCategoryChange} />
@@ -150,7 +171,7 @@ const handleCategoryChange = useCallback((value : string) => {
           control={form.control}
           name = "date"
           render={({ field }) => (
-            <FormItem> 
+            <FormItem className="flex flex-col"> 
               <FormLabel>Transaction Date </FormLabel>
               <Popover>
                 <PopoverTrigger asChild>
@@ -170,10 +191,14 @@ const handleCategoryChange = useCallback((value : string) => {
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-4">
+                <PopoverContent className="w-auto p-0">
                   <Calendar mode="single" 
                   selected={field.value}
-                  onSelect={field.onChange} autoFocus/>
+                  onSelect={value=> {
+                    if(!value) return;
+                    console.log("@@CALENDAR" , value);
+                    field.onChange(value);
+                  }} autoFocus/>
 
                 </PopoverContent>
               </Popover>
