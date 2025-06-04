@@ -35,8 +35,15 @@ function Overview({userSettings}: {userSettings : UserSettings}) {
             }}
             />
         </div>
+
     </div>
-  )
+    <StatsCards
+    userSettings = {userSettings}
+    from = {dateRange.from}
+    to = {dateRange.to}
+    />
+    </>
+  );
 }
 
 export default Overview 
