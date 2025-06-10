@@ -14,13 +14,14 @@ function Overview({userSettings}: {userSettings : UserSettings}) {
     })
   return (
     <>
-      <div className="container-flex flex-wrap items-end justify-between gap-2 py-6">
+<div className="flex flex-wrap items-end justify-between gap-2 py-6">
         <h2 className='text-3xl font-bold'>Overview</h2>
         <div className='flex items-center gap-3'>
           <DateRangePicker
             initialDateFrom={dateRange.from}
             initialCompareTo={dateRange.to}
-            showCompare={values => {
+            showCompare={false}
+            onUpdate={values => {
               const { from, to } = values.range;
               //update the date only if both the dates are set
               if (!from || !to) return;
@@ -34,11 +35,16 @@ function Overview({userSettings}: {userSettings : UserSettings}) {
           />
         </div>
       </div>
+    <div className="container flex w-full flex-col gap-2">
       <StatsCards
         userSettings={userSettings}
         from={dateRange.from}
         to={dateRange.to}
       />
+
+      <CategoriesStats/>
+
+      </div>  
     </>
   );
 }

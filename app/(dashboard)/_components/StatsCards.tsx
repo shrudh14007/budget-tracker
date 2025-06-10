@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { UserSettings } from '@/lib/generated/prisma';
 import { DatetoUTCDate, GetFormatterForCurrency } from '@/lib/helpers';
 import { useQuery } from '@tanstack/react-query';
-import { TrendingUp } from 'lucide-react';
+import { TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import React, { ReactNode, useCallback, useMemo } from 'react'
 import CountUp from "react-countup";
 
@@ -18,8 +18,11 @@ interface Props {
 function StatsCards({from,to, userSettings} : Props) {
     const statsQuery = useQuery<GetBalanceStatsResponseType>({
         queryKey : ["overview","stats",from,to],
-        queryFn : () => fetch(`/api/stats/balance?from=${DatetoUTCDate(from)}&
-        to=${DatetoUTCDate(to)}`).then((res) => res.json()),
+        queryFn: () =>
+  fetch(    
+    `/api/stats/balance?from=${DatetoUTCDate(from).toISOString()}&to=${DatetoUTCDate(to).toISOString()}`
+  ).then(res => res.json())
+
     });
 
     const formatter = useMemo(() => {
@@ -44,17 +47,44 @@ function StatsCards({from,to, userSettings} : Props) {
         }
         />
     </SkeletonWrapper>
+    <SkeletonWrapper isLoading={statsQuery.isFetching}>
+        <StatCard
+        formatter ={formatter}
+        value = {expense}
+        title = "Expense"
+        icon={
+            <TrendingDown className='h-12 w-12 items-center rounded-lg p-2 text-red-500 bg-red-400/10'/>
+        }
+        />
+    </SkeletonWrapper>
+    <SkeletonWrapper isLoading={statsQuery.isFetching}>
+        <StatCard
+        formatter ={formatter}
+        value = {balance}
+        title = "Balance"
+        icon={
+            <Wallet className='h-12 w-12 items-center rounded-lg p-2 text-violet-500 bg-violet-400/10'/>
+        }
+        />
+    </SkeletonWrapper>
     </div>
   )
 }
 
 export default StatsCards
-function StatCard({formatter,value,title,icon}: {
+
+
+function StatCard({
+    formatter,
+    value,
+    title,
+    icon
+}: {
     formatter:Intl.NumberFormat;
     icon: ReactNode;
-    title:String;
+    title:string;
     value: number;
-})
+}){
 
 const formatFn = useCallback((value: number) => {
     return formatter.format(value);
@@ -79,3 +109,4 @@ return (
         </div>
     </Card>
 );
+}
